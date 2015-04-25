@@ -30,9 +30,6 @@ RUNENDPOINT      = "participant/run"
 FEEDBACKENDPOINT = "participant/feedback"
 HISTORICALENDPOINT = "participant/historical"
 HEADERS = {'content-type': 'application/json'}
-#Uis#API_KEY = "6C3F4EDFB8F07D23-FO5AMVU5K1Z5K5B5"
-#Mira#API_KEY = "24F80F56F7DF499E-KQ7JEMB7MVRSFHBL"
-#Jern#API_KEY= "249F6C5277068308-8MZWIISQ3XDNHOKC"
 
 class Participant():
 	def __init__(self):
@@ -97,8 +94,7 @@ class Participant():
 			r.raise_for_status()
 		
 		return r.json()
-		#return json.loads(r.text,encoding="utf-8")
-
+	
 	def get_doclist(self,qid):
 		url = "/".join([self.host, DOCLISTENDPOINT, self.key, qid])
 		r = requests.get(url, headers=HEADERS)
@@ -333,12 +329,10 @@ def proportionate_query(doc_queries):
 
 def main():
 	
-	run_file = '/Users/AmanL/Documents/masterpro/trec/trec_eval.9.0/baselines/method3.txt'
 	participant = Participant()
-	#print participant.get_doclist('R-q25')
-	participant.store_run(run_file)
-	print 'run uploaded'
-	'''
+	#participant.store_run(run_file)
+	#print 'run uploaded'
+	
 	participant = Participant()
 	print "getting  queries ..."
 	all_queries = participant.get_queries()
@@ -353,16 +347,10 @@ def main():
 	unique_doc_ids = participant.get_unique_documents(doclists)
 	alldox = participant.prepare_dox(unique_doc_ids)	
 	print "Indexing documents..."
-	indexer.lucene_indexer(alldox)'''
+	indexer.lucene_indexer(alldox)
 	
 
 if __name__ == '__main__':
 	main()
 
-	#f = open('queries','w')
-	#all_queries = [query.strip() for query in open('queries','r')]
-	#for q in all_queries['queries']:
-	#	f.write(q['qstr'] + "\n")		
-	#run_file = 'nordlys/data/retrieval.out'
-	#participant.store_runs(run_file)
 

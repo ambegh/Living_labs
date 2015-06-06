@@ -150,6 +150,15 @@ class Participant():
 			r.raise_for_status()
 		return r.json()
 
+	def outcome(self, qid):
+		url = "/".join([self.host, OUTCOMEENDPOINT, self.key, qid])
+		r = requests.get(url, headers=HEADERS)
+		time.sleep(random.random())
+		if r.status_code != requests.codes.ok:
+			print r.text
+			r.raise_for_status()
+		return r.json()
+
 
 	def store_runs(self, runs):
 		for qid in runs:

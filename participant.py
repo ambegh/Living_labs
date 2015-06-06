@@ -253,6 +253,25 @@ class Participant():
 				print qid, " ".join([doc["docid"]
 									 for doc in doclist
 									 if doc["clicked"]])
+	"""
+	:param qid-query id and  team - participant or cite
+	:output - {docid:#clicks} for query qid
+	"""
+	def multiple_feedbacks(self,qid,team):
+		clicks = {}
+
+		for elem in self.get_feedback(qid)['feedback']:
+			for doc in elem['doclist']:
+				
+				if not doc['clicked'] and (doc['team'] == team) :
+					docid = doc['docid'] 
+					if docid in clicks:
+						clicks[docid] += 1
+					else:
+						clicks[docid] = 1
+
+		return clicks
+
 
 	# filter unique documents from queries doclists            
 	def get_unique_documents(self,doclists):

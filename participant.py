@@ -354,10 +354,10 @@ class Participant():
 		for query in all_queries["queries"]:
 			qid = query["qid"]
 			print 'getting doclist for %s'%qid
-			doclists[qid] = participant.get_doclist(qid)
+			doclists[qid] = self.get_doclist(qid)
 	
-		unique_doc_ids = participant.get_unique_documents(doclists)
-		alldox = participant.prepare_dox(unique_doc_ids)	
+		unique_doc_ids = self.get_unique_documents(doclists)
+		alldox = self.prepare_dox(unique_doc_ids)	
 		print "Indexing documents..."
 		indexer.lucene_indexer(alldox)
 		print "Indexing finished successfully"

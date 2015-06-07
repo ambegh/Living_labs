@@ -14,7 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Living Labs Challenge. If not, see <http://www.gnu.org/licenses/>.
-
+import matplotlib.pyplot as plt
+import matplotlib.pylab as p
 import argparse
 import requests
 import json
@@ -29,7 +30,12 @@ DOCLISTENDPOINT  = "participant/doclist"
 RUNENDPOINT      = "participant/run"
 FEEDBACKENDPOINT = "participant/feedback"
 HISTORICALENDPOINT = "participant/historical"
+OUTCOMEENDPOINT = "participant/outcome"
+
 HEADERS = {'content-type': 'application/json'}
+#Uis#API_KEY = "6C3F4EDFB8F07D23-FO5AMVU5K1Z5K5B5"
+#Mira#API_KEY = "24F80F56F7DF499E-KQ7JEMB7MVRSFHBL"
+#Jern#API_KEY= "249F6C5277068308-8MZWIISQ3XDNHOKC"
 
 class Participant():
 	def __init__(self):
@@ -94,7 +100,8 @@ class Participant():
 			r.raise_for_status()
 		
 		return r.json()
-	
+		#return json.loads(r.text,encoding="utf-8")
+
 	def get_doclist(self,qid):
 		url = "/".join([self.host, DOCLISTENDPOINT, self.key, qid])
 		r = requests.get(url, headers=HEADERS)
@@ -150,15 +157,6 @@ class Participant():
 			r.raise_for_status()
 		return r.json()
 
-	def outcome(self, qid):
-		url = "/".join([self.host, OUTCOMEENDPOINT, self.key, qid])
-		r = requests.get(url, headers=HEADERS)
-		time.sleep(random.random())
-		if r.status_code != requests.codes.ok:
-			print r.text
-			r.raise_for_status()
-		return r.json()
-
 
 	def store_runs(self, runs):
 		for qid in runs:
@@ -183,10 +181,10 @@ class Participant():
 						if doc["clicked"] and doc["docid"] in clicks:
 							clicks[doc["docid"]] += 1
 				runs[qid]['doclist'] = [{'docid': docid}
-										for docid, _ in
-										sorted(clicks.items(),
-											   key=lambda x: x[1],
-											   reverse=True)]
+											for docid, _ in
+											sorted(clicks.items(),
+												   key=lambda x: x[1],
+												   reverse=True)]
 				print clicks
 		self.runid += 1
 		self.store_runs(runs)
@@ -249,9 +247,9 @@ class Participant():
 		
 		self.store_runs(runs)
 
-	def get_feedbacks(self, key):
+	def get_feedbacks(self,qid):
 		feedbacks = {}
-		for elem in self.get_feedback(key, "all")['feedback']:
+		for elem in self.get_feedback(qid)['feedback']:
 			qid = elem["qid"]
 			if qid in feedbacks:
 				feedbacks[qid].append(elem["doclist"])
@@ -259,13 +257,12 @@ class Participant():
 				feedbacks[qid] = [elem["doclist"]]
 		for qid, doclists in feedbacks.items():
 			for doclist in doclists:
-				print qid, " ".join([doc["docid"]
-									 for doc in doclist
+				print qid , " ".join([doc["docid"]
+								 for doc in doclist
 									 if doc["clicked"]])
-	"""
-	:param qid-query id and  team - participant or cite
-	:output - {docid:#clicks} for query qid
-	"""
+				#with open('feedback.txt','w') as fdbk:
+				#	fdbk.write(line + '\n')
+
 	def multiple_feedbacks(self,qid,team):
 		clicks = {}
 
@@ -306,7 +303,7 @@ class Participant():
 				docids = []
 				for doc in histo_feed['doclist']:
 					if doc['docid'] not in docids:
-						out.write(str(histo_feed['qid'] )+ " Q0 " + str(doc['docid']) + " " + str(float(doc['clicked']) * 100)+ "\n")
+						out.write(str(histo_feed['qid'] )+ " Q0 " + str(doc['docid']) + " " + str(float(doc['clicked']) * 1000)+ "\n")
     					docids.append(doc['docid'])
 
 
@@ -331,6 +328,7 @@ class Participant():
 		:returns  all unique documents for Indexing
 		: Make fields visible for indexing 
 	"""
+
 	def prepare_dox(self,unique_doc_ids):
 		
 		alldox = []
@@ -346,6 +344,35 @@ class Participant():
 				alldox.append(adoc)
 		return alldox
 
+
+	"""
+		: Indexer function first prepare documents ,then clear duplicate
+
+	"""
+	def index_products(self,):
+		all_queries = self.get_queries()
+		for query in all_queries["queries"]:
+			qid = query["qid"]
+			print 'getting doclist for %s'%qid
+			doclists[qid] = participant.get_doclist(qid)
+	
+		unique_doc_ids = participant.get_unique_documents(doclists)
+		alldox = participant.prepare_dox(unique_doc_ids)	
+		print "Indexing documents..."
+		indexer.lucene_indexer(alldox)
+		print "Indexing finished successfully"
+
+	def outcome(self, qid):
+		url = "/".join([self.host, OUTCOMEENDPOINT, self.key, qid])
+		r = requests.get(url, headers=HEADERS)
+		time.sleep(random.random())
+		if r.status_code != requests.codes.ok:
+			print r.text
+			r.raise_for_status()
+		#print r.json()
+		return r.json()
+
+
 def proportionate_query(doc_queries):
 	repeated_terms = ""
 	for query in doc_queries:
@@ -358,11 +385,79 @@ def proportionate_query(doc_queries):
 def main():
 	
 	participant = Participant()
+	
+	outcomes = []
+	out = ""
+	outstring = ""
+	rankedpro = []
+	one_query = 'R-q15'
+	# ranking of query 
+	with open('method3.txt','r') as ranking:
+		for line in ranking:
+			qid,_,docid,_,_,_= line.split()
+			if qid == one_query:
+				rankedpro.append(docid)
+
+
+	feedback = participant.multiple_feedbacks(one_query,'participant')
+	sort_feed = sorted(feedback.items(), key=lambda x:x[1] , reverse=True)
+	xfeed = []
+	yfeed=[]
+	zfeed = []
+	for prod in rankedpro: 
+		if prod in feedback:
+			zfeed.append(str(feedback[prod]))
+		else:
+			zfeed.append('0')
+
+	for k,v in sort_feed:
+		xfeed.append(k)
+		yfeed.append(str(v))
+
+	print ",".join(xfeed)
+	print ",".join(yfeed)
+	print 'ranked clicks'
+	print ",".join(rankedpro)
+	print ",".join(zfeed) 
+	
+
+	#p.figure()
+	#plt.plot(xfeed, yfeed, label='Clicks')
+ 	#plt.p(radius, square, marker='o', linestyle='--', color='r', label='Square')
+	#plt.xlabel('Radius/Side')
+	#plt.ylabel('Area')
+	#plt.title('Area of Shapes')
+	#plt.legend()
+	#plt.show()
+
+	"""
+	with open('data/testqueries.json','r') as json_queries:
+		queries = json.load(json_queries)
+		print 'queries loaded '
+	
+	for q in queries:
+		out = participant.outcome(q["query_id"])
+		for result in out['outcomes']:	
+			#print result
+			outstring += q["query"] +'\t\t'+ q["query_id"] +'\t'+ str(result["wins"]) +'\t'+ str(result["losses"]) +'\t'+ str(result["outcome"]) +'\t\t'+ str(result["impressions"])+'\t'+ result["type"]
+    		outstring += '\n'
+		print outstring	
+	with open('data/outcome_M3.txt','w') as outcom:
+		outcom.write(outstring)
+		print 'file written' 
+	
+			
+	#participant.get_feedbacks()
+	#participant.prepare_qrels('newest_qrels.txt')
+
+	#run_file = "/Users/AmanL/Documents/masterpro/trec/trec_eval.9.0/baselines/updated_qrels/method3.txt"
 	#participant.store_run(run_file)
 	#print 'run uploaded'
-	
-	participant = Participant()
-	print "getting  queries ..."
+	#participant.prepare_qrels('new_qrels.txt')
+
+
+
+	'''print "getting  queries ..."
 	all_queries = participant.get_queries()
 	print "Number of queries : %d" % len(all_queries['queries'])
 	
@@ -375,10 +470,10 @@ def main():
 	unique_doc_ids = participant.get_unique_documents(doclists)
 	alldox = participant.prepare_dox(unique_doc_ids)	
 	print "Indexing documents..."
-	indexer.lucene_indexer(alldox)
-	
+	indexer.lucene_indexer(alldox)'''
+	"""
 
 if __name__ == '__main__':
-	main()
+	main() 
 
-
+	

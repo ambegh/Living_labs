@@ -162,18 +162,20 @@ class ScorerMLM(ScorerLM):
     """
     def mapping_f_t(self,term,field):
         field_weights = self.params['field_weights']
-        
+        method = self.method['method']
         sum_prob_t_C_f = 0 # Sigma[p(t|C_f)]
         for eachfield in field_weights:
             len_C_f = self.lucene.get_coll_length(eachfield)
             coll_term_freq = self.lucene.get_coll_termfreq(term, eachfield)
             p_t_C_f = coll_term_freq / len_C_f if len_C_f > 0 else 0 # P(t|C_f) = n(t,C_f) / |C_f|
-            sum_prob_t_C_f += p_t_C_f #* field_weights[eachfield]  # METHOD 3
+            weight = field_weights[eachfield]
+
+            sum_prob_t_C_f += p_t_C_f * field_weights[eachfield] if method == 'method3' else p_t_C_f # METHOD 3
             if field == eachfield:
-                term_coll_prob = p_t_C_f #* field_weights[eachfield]
+                term_coll_prob = p_t_C_f * field_weights[eachfield] if method == 'method3' else p_t_C_f
 
         p = float(term_coll_prob / sum_prob_t_C_f) if sum_prob_t_C_f != 0 else 0
-        #print "P(%s|%s)= %s"%(field,term,p)
+        print "P(%s|%s)= %s"%(field,term,p)
         return p 
         
 
@@ -183,7 +185,7 @@ class ScorerMLM(ScorerLM):
             lucene_doc_id = self.lucene.get_lucene_document_id(doc_id)
 
         weights = self.params['field_weights']
-
+        method = self.params['method']
         # gets term prob for each field
         field_term_probs = {}
         for field in weights.keys():
@@ -199,9 +201,11 @@ class ScorerMLM(ScorerLM):
                 print "\tt=" + t
             # p(t|theta_d) = sum(mu_f * p(t|theta_d_f))
             p_t_theta_d = 0
-            for f in weights:#.iteritems():
-                #p_t_theta_d += weights[f] * field_term_probs[f][t] ## METHOD 1
-                p_t_theta_d += self.mapping_f_t(t,f) * field_term_probs[f][t] ## METHODS 2,3
+            for f in weights:
+                if method == 'method1':    
+                    p_t_theta_d += weights[f] * field_term_probs[f][t] ## METHOD 1
+                else :
+                    p_t_theta_d += self.mapping_f_t(t,f) * field_term_probs[f][t]  ## METHODS 2,3
                 if self.SCORER_DEBUG:
                     print "\t\t\tf=" + f + ", mu_f=" + str(self.mapping_f_t(t,f)) + "  P(t|theta_d,f)=" + str(field_term_probs[f][t])
             # Skips the term if it is not in the field collection

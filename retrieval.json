@@ -1,0 +1,22 @@
+{
+	"index_dir":"/livinglabs_index",
+	"output_file": "/retrieval.txt",
+	"query_file": "data/queries.json",
+	"smoothing_param":0.1,
+    "method":"method3",
+    "run_id": "method3",
+    "first_pass_num_docs": 1000,
+    "num_docs": 100,
+    "model": "mlm",
+    "field_weights": {
+        "brand":0.024,
+        "product_name": 0.2,   
+        "contents": 0.25, 
+        "description":0.14,
+        "characters":0.13,
+        "category":0.15,
+        "short_description":0.1
+        }
+
+
+}

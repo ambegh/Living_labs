@@ -33,9 +33,6 @@ HISTORICALENDPOINT = "participant/historical"
 OUTCOMEENDPOINT = "participant/outcome"
 
 HEADERS = {'content-type': 'application/json'}
-#Uis#API_KEY = "6C3F4EDFB8F07D23-FO5AMVU5K1Z5K5B5"
-#Mira#API_KEY = "24F80F56F7DF499E-KQ7JEMB7MVRSFHBL"
-#Jern#API_KEY= "249F6C5277068308-8MZWIISQ3XDNHOKC"
 
 class Participant():
 	def __init__(self):
@@ -349,7 +346,7 @@ class Participant():
 		: Indexer function first prepare documents ,then clear duplicate
 
 	"""
-	def index_products(self,):
+	def index_products(self):
 		all_queries = self.get_queries()
 		for query in all_queries["queries"]:
 			qid = query["qid"]

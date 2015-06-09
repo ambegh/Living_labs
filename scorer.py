@@ -162,7 +162,7 @@ class ScorerMLM(ScorerLM):
     """
     def mapping_f_t(self,term,field):
         field_weights = self.params['field_weights']
-        method = self.method['method']
+        method = self.params['method']
         sum_prob_t_C_f = 0 # Sigma[p(t|C_f)]
         for eachfield in field_weights:
             len_C_f = self.lucene.get_coll_length(eachfield)

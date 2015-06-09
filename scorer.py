@@ -175,7 +175,6 @@ class ScorerMLM(ScorerLM):
                 term_coll_prob = p_t_C_f * field_weights[eachfield] if method == 'method3' else p_t_C_f
 
         p = float(term_coll_prob / sum_prob_t_C_f) if sum_prob_t_C_f != 0 else 0
-        print "P(%s|%s)= %s"%(field,term,p)
         return p 
         
 

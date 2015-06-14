@@ -334,11 +334,11 @@ class Participant():
 			adoc = self.get_document(docid)
 			for f in adoc['content']:
 				adoc[f] = adoc['content'][f]
-				adoc['characters'] = " ".join(adoc['characters'])
-				weighted_query = proportionate_query(adoc['queries']) if adoc['queries'] else ""
-				adoc['queries'] = weighted_query 
-				del adoc['content']
-				alldox.append(adoc)
+			adoc['characters'] = " ".join(adoc['characters'])
+			weighted_query = proportionate_query(adoc['queries']) if adoc['queries'] else ""
+			adoc['queries'] = weighted_query 
+			del adoc['content']
+			alldox.append(adoc)
 		return alldox
 
 

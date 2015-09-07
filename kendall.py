@@ -1,3 +1,6 @@
+"""this module calculates kendal coefficient 
+   Reads the sets of number from files
+"""
 
 def load_ranking(file):
 	rank = {}
